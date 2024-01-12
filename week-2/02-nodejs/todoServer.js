@@ -41,9 +41,74 @@
  */
   const express = require('express');
   const bodyParser = require('body-parser');
-  
+  const { v4: uuidv4 } = require('uuid');
   const app = express();
   
   app.use(bodyParser.json());
+  let TODOS = [{
+    id: 'a8e9311a-eed7-41b8-ba77-8040d95e5715',
+    title: 'Start the assignment',
+    completed: false,
+    description: 'This is the 02-Node-Assignment from Cohort 2.0'
+  }];
+
+
+  app.get('/todos', (req,res) => {
+    return res.status(200).json(TODOS);
+  })
+
+  app.post('/todos', (req,res) => {
+    const {title, completed, description} = req.body;
+
+    const newTodo = {
+      id: uuidv4(),
+      title,
+      completed,
+      description
+    }
+    TODOS.push(newTodo);
+
+    return res.status(201).json({id: newTodo.id});
+  })
+
+  app.get('/todos/:id', (req, res) => {
+    const id = req.params.id;
+    const todo = TODOS.filter(todo => todo.id == id);
+    
+    if(!todo.length) {
+      return res.status(200).json({todo})
+    }else {
+      return res.status(404).json({msg: 'Todo with that id does not exist.'})
+    }
+
+  })
+
+  app.put('/todos/:id', (req, res) => {
+    const id = req.params.id;
+    let todo = TODOS.filter(todo => todo.id == id);
+    const {title, completed} = req.body;
+    if(todo) {
+      todo[0].title = title;
+      todo[0].completed = completed;
+      return res.status(200).json({todo})
+    }else {
+      return res.status(404).json({msg: 'Todo with that id does not exist.'})
+    }
+  })
+
+  app.delete('/todos/:id', (req, res) => {
+    const id = req.params.id;
+    let todo = TODOS.filter(todo => todo.id !== id);
+    if(todo) {
+      TODOS = todo;
+      return res.status(200).json({msg: 'Deleted successfully!'});
+    }else {
+      return res.status(404).json({msg: 'Todo with that id does not exist.'})
+    }
+  })
+
+  app.use((req, res, next) => {
+    res.status(404).send();
+  });
   
   module.exports = app;
